@@ -8,8 +8,8 @@
     tools:context="com.example.ulquiorra.footballgame.MainActivity">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="576dp"
+        android:layout_height="295dp"
         android:orientation="horizontal"
         tools:layout_constraintTop_creator="1"
         tools:layout_constraintRight_creator="1"

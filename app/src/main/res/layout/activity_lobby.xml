@@ -83,12 +83,12 @@
                 android:text="Score" />
 
             <Button
-                android:id="@+id/exitBtn"
+                android:id="@+id/backBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.2"
                 android:layout_marginTop="20dp"
-                android:text="Exit" />
+                android:layout_weight="0.2"
+                android:text="Back" />
         </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
