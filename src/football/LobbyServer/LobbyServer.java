@@ -12,8 +12,10 @@ import TCPServerClient.TCPServer;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -24,7 +26,7 @@ public class LobbyServer implements ServerCallback{
 
     private final HashMap<Long, Player> players = new HashMap<>();
     private final HashMap<String, Room> rooms = new HashMap<>();
-    private final ArrayList<Message> messages = new ArrayList<>();
+    private final List<Message> messages = Collections.synchronizedList(new ArrayList<>());
     private final TCPServer server;
     private boolean run = true;
     public static final String NEWCONMSG = "NEWCONNECTION";

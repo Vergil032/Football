@@ -25,27 +25,40 @@ public class TCPServer extends Thread implements ConnectionCallback{
     private boolean run=true;
     public final static Logger LOGGER = Logger.getLogger(TCPServer.class.getName());
     private final ServerCallback callback;
+    private final int maxConnetion;
+    private int conCounter = 0;
 
     public TCPServer(int port, ServerCallback callback) throws IOException {
+        this(port, callback, -1);
+    }
+
+    public TCPServer(int port, ServerCallback callback, int maxConnetion) throws IOException {
         serverSocket = new ServerSocket(port);
         LOGGER.log(Level.INFO, "server started");
         this.callback = callback;
+        this.maxConnetion = maxConnetion;
     }
 
     @Override
     public void run() {
         while (run) {
             try {
-                Socket clientSocket = serverSocket.accept();
-                Connection con = new Connection(clientSocket, this);
-                con.start();
-                callback.newConnection(con);
-                LOGGER.log(Level.INFO, "new connection: {0}", clientSocket);
+                Socket socket = serverSocket.accept();
+                if (conCounter < maxConnetion) {
+                    conCounter++;
+                    Connection con = new Connection(socket, this);
+                    con.start();
+                    callback.newConnection(con);
+                    LOGGER.log(Level.INFO, "new connection: {0}", socket);
+                }else{
+                    socket.close();
+                }
             } catch (IOException err) {
                 err.printStackTrace();
             }
         }
     }
+
     
     public void stopServer() throws IOException{
         serverSocket.close();
