@@ -22,7 +22,7 @@ import java.util.Random;
  *
  * @author nicknacck
  */
-public class LobbyServer implements ServerCallback{
+public class LobbyServer implements ServerCallback {
 
     private final HashMap<Long, Player> players = new HashMap<>();
     private final HashMap<String, Room> rooms = new HashMap<>();
@@ -31,28 +31,11 @@ public class LobbyServer implements ServerCallback{
     private boolean run = true;
     public static final String NEWCONMSG = "NEWCONNECTION";
     public static final String LOSTCONMSG = "LOSTCONNECTION";
-    
+
     public static final int PORT = 1234;
-    
-    public static final String GAMESERVERIP="localhost";
-    public static final int GAMESERVERPORT=123;
-    
-    private Connection gameServerConnection;
-    
+
     public LobbyServer(int port) throws IOException {
         server = new TCPServer(PORT, this);
-        
-        gameServerConnection= new Connection(new Socket(GAMESERVERIP, GAMESERVERPORT), new ConnectionCallback() {
-            @Override
-            public void newMessage(Connection con, String msg) {
-                
-            }
-
-            @Override
-            public void lostConnection(Connection con) {
-                
-            }
-        });
     }
 
     @Override
@@ -162,7 +145,17 @@ public class LobbyServer implements ServerCallback{
 
                     break;
                 }
-//                case "": {
+                case "START": {
+                    Room room = msg.player.getRoom();
+                    if (room.getAdmin() != msg.player || !room.canStart()) {
+                        return;
+                    }
+                    GameHoster.newGame(room);
+                    destroyRoom(room);
+                    break;
+                }
+
+                //case "": {
 //                    break;
 //                }
                 default: {
@@ -221,10 +214,10 @@ public class LobbyServer implements ServerCallback{
     }
 
     public void destroyRoom(Room room) {
-        room.destroyRoom();
+        room.leaveAll();
         rooms.remove(room.getName());
     }
-    
+
     class Message {
 
         Player player;

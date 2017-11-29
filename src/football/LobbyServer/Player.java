@@ -30,7 +30,7 @@ public class Player {
     public Room getRoom() {
         return room;
     }
-    long getID() {
+    public long getID() {
         return ID;
     }
 
@@ -41,5 +41,7 @@ public class Player {
     public void send(String msg){
         con.send(msg);
     }
+    
+    
     
 }

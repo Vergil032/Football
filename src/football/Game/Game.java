@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package football.GameServer;
+package football.Game;
 
 import TCPServerClient.Connection;
 import TCPServerClient.ServerCallback;
 import TCPServerClient.TCPServer;
-import football.LobbyServer.WinCondition;
+import football.LobbyServer.Room;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +20,7 @@ import java.util.logging.Logger;
  *
  * @author nicknacck
  */
-class Game extends Thread implements ServerCallback {
-
+public class Game extends Thread implements ServerCallback {
     private final int port;
     private final TCPServer server;
     private boolean destroy = false;
@@ -33,23 +32,24 @@ class Game extends Thread implements ServerCallback {
     ArrayList<Player> teamBlue = new ArrayList<>();
     private boolean run;
 
-    public Game(int port, int ppt, ArrayList<Long> teamRed, ArrayList<Long> teamBlue, WinCondition wc, ArrayList<Long> bots) throws IOException {
+    public Game(int port, Room room) throws IOException {
         this.port = port;
-        for (int i = 0; i < teamRed.size(); i++) {
-            Player player = new Player(teamRed.get(i));
-            this.teamRed.add(player);
+        for (int i = 0; i < room.getTeamRed().size(); i++) {
+            Player player = new Player(room.getTeamRed().get(i).getID());
+            teamRed.add(player);
         }
-        for (int i = 0; i < teamRed.size(); i++) {
-            Player player = new Player(teamRed.get(i));
-            players.add(player);
-            this.teamBlue.add(player);
+        for (int i = 0; i < room.getTeamBlue().size(); i++) {
+            Player player = new Player(room.getTeamBlue().get(i).getID());
+            teamBlue.add(player);
         }
-        server = new TCPServer(port, this, ppt * 2);
+        server = new TCPServer(port, this, room.getPlayerPerTeam() * 2);
+        
     }
 
     @Override
     public void run() {
         server.start();
+        
         while (run) {
             processMessages();
             try {
@@ -80,11 +80,11 @@ class Game extends Thread implements ServerCallback {
         }
     }
 
-    boolean shouldDestroy() {
+    public boolean shouldDestroy() {
         return destroy;
     }
 
-    Integer getPort() {
+    public Integer getPort() {
         return port;
     }
 

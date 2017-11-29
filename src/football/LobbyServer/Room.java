@@ -34,7 +34,7 @@ public class Room {
     }
 
     public int join(Player p, String pass) {
-        if(!password.equals(pass)){
+        if (!password.equals(pass)) {
             return -1;
         }
         if (isFull()) {
@@ -54,10 +54,10 @@ public class Room {
     }
 
     public void leave(Player p) {
-        if(p==null){
+        if (p == null) {
             return;
         }
-        
+
         if (p == admin) {
             lobby.destroyRoom(this);
         } else {
@@ -124,7 +124,7 @@ public class Room {
         }
     }
 
-    public void destroyRoom() {
+    public void leaveAll() {
         for (int i = 0; i < teamBlue.size(); i++) {
             teamBlue.get(i).send("LEAVE]");
         }
@@ -148,7 +148,36 @@ public class Room {
     public String getPassword() {
         return password;
     }
+
+    public ArrayList<Player> getTeamBlue() {
+        return teamBlue;
+    }
+
+    public ArrayList<Player> getTeamRed() {
+        return teamRed;
+    }
+
+    public Player getAdmin() {
+        return admin;
+    }
+
+    public void start(int port) {
+        if (canStart()) {
+            sendToAll("START]" + port);
+        }
+    }
     
-    
-    
+    public boolean canStart(){
+        return teamBlue.size() == teamRed.size() && teamBlue.size() + teamRed.size() == playerPerTeam * 2;
+    }
+
+    private void sendToAll(String msg) {
+        for (int i = 0; i < teamBlue.size(); i++) {
+            teamBlue.get(i).send(msg);
+        }
+        for (int i = 0; i < teamRed.size(); i++) {
+            teamRed.get(i).send(msg);
+        }
+    }
+
 }
