@@ -42,6 +42,8 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
     private static final int BALLRADIUS = 10;
     private static final int PLAYERRADIUS = 15;
     
+    private static final int GAMEPLAYERLINK = 1;
+    
     public Game(Room room) throws IOException {
         world= new World(FIELDWIDTH, FIELDHEIGHT);
         world.circles.add(new Circle(FIELDWIDTH/2, FIELDHEIGHT/2, 0, 0, BALLRADIUS));
@@ -52,6 +54,7 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
             Circle circle = new Circle(50, y*(i+1), 0, 0, PLAYERRADIUS);
             LobbyPlayer lobbbyplayer = room.getTeamRed().get(i);
             Player player = new Player(lobbbyplayer.getID(),lobbbyplayer.name);
+            lobbbyplayer.con.setLink(GAMEPLAYERLINK, player);
             player.setCircle(circle);
             teamRed.add(player);
             world.circles.add(circle);
@@ -60,6 +63,7 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
             Circle circle = new Circle(FIELDWIDTH-50, y*(i+1), 0, 0, PLAYERRADIUS);
             LobbyPlayer lobbbyplayer = room.getTeamBlue().get(i);
             Player player = new Player(lobbbyplayer.getID(),lobbbyplayer.name);
+            lobbbyplayer.con.setLink(GAMEPLAYERLINK, player);
             player.setCircle(circle);
             teamBlue.add(player);
             world.circles.add(circle);
@@ -70,14 +74,14 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
     public void joinGame(Room room){
         for (int i = 0; i < room.getTeamRed().size(); i++) {
             LobbyPlayer lobbbyplayer = room.getTeamRed().get(i);
-            lobbbyplayer.con.setCallback(this);
-            lobbbyplayer.send("JOIN");
+            lobbbyplayer.con.addCallback(this);
+            lobbbyplayer.send("JOINGAME");
             lobbbyplayer.game= this;
         }
         for (int i = 0; i < room.getTeamBlue().size(); i++) {
             LobbyPlayer lobbbyplayer = room.getTeamBlue().get(i);
-            lobbbyplayer.con.setCallback(this);
-            lobbbyplayer.send("JOIN");
+            lobbbyplayer.con.addCallback(this);
+            lobbbyplayer.send("JOINGAME");
             lobbbyplayer.game= this;
         }
     }
@@ -119,17 +123,9 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
         return destroy;
     }
 
-    public Integer getPort() {
-        return port;
-    }
-
-    @Override
-    public void newConnection(Connection con) {
-    }
-
     @Override
     public void newMessage(Connection con, String msg) {
-        messages.add(new Message(con, msg));
+        messages.add(new Message((Player) con.getLink(GAMEPLAYERLINK), msg));
     }
 
     @Override
@@ -173,13 +169,14 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
 
     private static class Message {
 
-        Connection con;
+        Player player;
         String msg;
 
-        public Message(Connection con, String msg) {
-            this.con = con;
+        public Message(Player player, String msg) {
+            this.player = player;
             this.msg = msg;
         }
+        
 
     }
 }

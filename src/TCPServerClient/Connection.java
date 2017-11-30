@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -19,18 +21,34 @@ public class Connection extends Thread {
     private final Socket socket;
     public final InputStream inputStream;
     public final OutputStream outputStream;
-    private ConnectionCallback callback;
-    public Object link;
+    private final ArrayList<ConnectionCallback> callback = new ArrayList<>();
+    private final HashMap<Integer, Object> linker = new HashMap<>();
 
     public Connection(Socket socket, ConnectionCallback callback) throws IOException {
         this.socket = socket;
         inputStream = socket.getInputStream();
         outputStream = socket.getOutputStream();
-        this.callback = callback;
+        this.callback.add(callback);
     }
 
-    public void setCallback(ConnectionCallback callback) {
-        this.callback = callback;
+    public void addCallback(ConnectionCallback callback) {
+        this.callback.add(callback);
+    }
+
+    public void removeCallback(ConnectionCallback callback) {
+        this.callback.remove(callback);
+    }
+
+    public void setLink(int link, Object o) {
+        linker.put(link, o);
+    }
+
+    public Object getLink(int link) {
+        return linker.get(link);
+    }
+
+    public void removeLink(int link) {
+        linker.remove(link);
     }
 
     @Override
@@ -39,15 +57,22 @@ public class Connection extends Thread {
         try {
             int read;
             while ((read = inputStream.read(buffer, 0, 1024)) != -1) {
-                if (callback != null) {
-                    callback.newMessage(this, new String(buffer, 0, read));
+                for (int i = 0; i < callback.size(); i++) {
+                    ConnectionCallback get = callback.get(i);
+                    if (get != null) {
+                        get.newMessage(this, new String(buffer, 0, read));
+                    }
                 }
+
             }
         } catch (IOException ex) {
         }
         close();
-        if (callback != null) {
-            callback.lostConnection(this);
+        for (int i = 0; i < callback.size(); i++) {
+            ConnectionCallback get = callback.get(i);
+            if (get != null) {
+                get.lostConnection(this);
+            }
         }
     }
 

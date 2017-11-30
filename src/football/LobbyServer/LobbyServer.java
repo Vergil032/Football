@@ -6,11 +6,9 @@
 package football.LobbyServer;
 
 import TCPServerClient.Connection;
-import TCPServerClient.ConnectionCallback;
 import TCPServerClient.ServerCallback;
 import TCPServerClient.TCPServer;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +31,7 @@ public class LobbyServer implements ServerCallback {
     public static final String LOSTCONMSG = "LOSTCONNECTION";
 
     public static final int PORT = 1234;
+    public static final int LOBBYLINK = 0;
 
     public LobbyServer(int port) throws IOException {
         server = new TCPServer(PORT, this);
@@ -48,12 +47,12 @@ public class LobbyServer implements ServerCallback {
 
         LobbyPlayer newPlayer = new LobbyPlayer(nextID, con);
         players.put(nextID, newPlayer);
-        con.link = newPlayer;
+        con.setLink(LOBBYLINK, newPlayer);
     }
 
     @Override
     public void newMessage(Connection con, String msg) {
-        messages.add(new Message((LobbyPlayer) con.link, msg));
+        messages.add(new Message((LobbyPlayer) con.getLink(LOBBYLINK), msg));
     }
 
     @Override

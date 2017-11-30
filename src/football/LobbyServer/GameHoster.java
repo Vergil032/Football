@@ -26,8 +26,8 @@ public class GameHoster {
             Game game = new Game(room);
             games.add(game);
             game.joinGame(room);
-            game.start();
             room.start();
+            game.start();
         }
     }
 
