@@ -19,14 +19,17 @@ public class Connection extends Thread {
     private final Socket socket;
     public final InputStream inputStream;
     public final OutputStream outputStream;
-    private final ConnectionCallback callback;
+    private ConnectionCallback callback;
     public Object link;
-    
-    
+
     public Connection(Socket socket, ConnectionCallback callback) throws IOException {
         this.socket = socket;
         inputStream = socket.getInputStream();
         outputStream = socket.getOutputStream();
+        this.callback = callback;
+    }
+
+    public void setCallback(ConnectionCallback callback) {
         this.callback = callback;
     }
 
@@ -36,12 +39,16 @@ public class Connection extends Thread {
         try {
             int read;
             while ((read = inputStream.read(buffer, 0, 1024)) != -1) {
-                callback.newMessage(this, new String(buffer, 0, read));
+                if (callback != null) {
+                    callback.newMessage(this, new String(buffer, 0, read));
+                }
             }
         } catch (IOException ex) {
         }
         close();
-        callback.lostConnection(this);
+        if (callback != null) {
+            callback.lostConnection(this);
+        }
     }
 
     public void send(String msg) {
@@ -65,7 +72,5 @@ public class Connection extends Thread {
     public String toString() {
         return socket.toString();
     }
-    
-    
-    
+
 }

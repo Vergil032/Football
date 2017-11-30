@@ -14,16 +14,16 @@ import java.util.ArrayList;
 public class Room {
 
     private final String name;
-    private final ArrayList<Player> teamRed = new ArrayList<>();
-    private final ArrayList<Player> teamBlue = new ArrayList<>();
+    private final ArrayList<LobbyPlayer> teamRed = new ArrayList<>();
+    private final ArrayList<LobbyPlayer> teamBlue = new ArrayList<>();
     private final int playerPerTeam;
     private final int winvalue;
-    private final Player admin;
+    private final LobbyPlayer admin;
     private final int wincondition;
     private final LobbyServer lobby;
     private final String password;
 
-    public Room(String name, int playerPerTeam, int wincondition, int winvalue, Player admin, LobbyServer lobby, String password) {
+    public Room(String name, int playerPerTeam, int wincondition, int winvalue, LobbyPlayer admin, LobbyServer lobby, String password) {
         this.name = name;
         this.playerPerTeam = playerPerTeam;
         this.wincondition = wincondition;
@@ -33,7 +33,7 @@ public class Room {
         this.password = password;
     }
 
-    public int join(Player p, String pass) {
+    public int join(LobbyPlayer p, String pass) {
         if (!password.equals(pass)) {
             return -1;
         }
@@ -53,7 +53,7 @@ public class Room {
         return 0;
     }
 
-    public void leave(Player p) {
+    public void leave(LobbyPlayer p) {
         if (p == null) {
             return;
         }
@@ -67,7 +67,7 @@ public class Room {
         }
     }
 
-    public void changeTeam(Player p) {
+    public void changeTeam(LobbyPlayer p) {
         if (p != null) {
             if (teamBlue.contains(p)) {
                 teamBlue.remove(p);
@@ -102,7 +102,7 @@ public class Room {
         return "{\"room\": {\"teamRed\":" + teamToJSON(teamRed) + ", \"teamBlue\":" + teamToJSON(teamBlue) + "}}";
     }
 
-    private String teamToJSON(ArrayList<Player> team) {
+    private String teamToJSON(ArrayList<LobbyPlayer> team) {
         String json = "[";
         for (int i = 0; i < team.size(); i++) {
             json += "{\"name\": \"" + team.get(i).name + "\"}";
@@ -149,21 +149,21 @@ public class Room {
         return password;
     }
 
-    public ArrayList<Player> getTeamBlue() {
+    public ArrayList<LobbyPlayer> getTeamBlue() {
         return teamBlue;
     }
 
-    public ArrayList<Player> getTeamRed() {
+    public ArrayList<LobbyPlayer> getTeamRed() {
         return teamRed;
     }
 
-    public Player getAdmin() {
+    public LobbyPlayer getAdmin() {
         return admin;
     }
 
-    public void start(int port) {
+    public void start() {
         if (canStart()) {
-            sendToAll("START]" + port);
+            sendToAll("START]");
         }
     }
     

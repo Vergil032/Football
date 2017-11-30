@@ -7,31 +7,28 @@ package football.LobbyServer;
 
 import football.Game.Game;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  *
  * @author nicknacck
  */
 public class GameHoster {
-    private static final HashMap<Integer, Game> games= new HashMap<>();
-    
-    
-    public static void clearGames(){
-        
+
+    private static final ArrayList games = new ArrayList();
+
+    public static void clearGames() {
+
     }
 
     static void newGame(Room room) throws IOException {
-        int port= newPort();
-        Game game= new Game(port, room);
-        games.put(port, game);
-        game.start();
-        room.start(port);
-        
+        if (room.canStart()) {
+            Game game = new Game(room);
+            games.add(game);
+            game.joinGame(room);
+            game.start();
+            room.start();
+        }
     }
 
-    private static int newPort() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

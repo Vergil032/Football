@@ -6,19 +6,35 @@
 package football.Game;
 
 import TCPServerClient.Connection;
-
+import Physics.Circle;
 /**
  *
  * @author nicknacck
  */
 class Player {
-    Connection con;
-    public long id;
-
-    public Player(long id) {
+    private long id;
+    private Circle circle;
+    private String name;
+    public Player(long id, String name) {
         this.id = id;
+        this.name=name;
     }
-    
+
+    public void setCircle(Circle circle) {
+        this.circle = circle;
+    }
+
+    public Circle getCircle() {
+        return circle;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public long getId() {
+        return id;
+    }
     
     
 }

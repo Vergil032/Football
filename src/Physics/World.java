@@ -7,35 +7,25 @@ package Physics;
 
 import Vector.Vector2d;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Random;
-import javax.swing.JPanel;
-
 /**
  *
  * @author nicknacck
  */
-public class World extends JPanel {
+public class World  {
 
-    private ArrayList<Circle> circles = new ArrayList<>();
-    private int borderX = 1000, borderY = 500;
+    public ArrayList<Circle> circles = new ArrayList<>();
+    private final int borderX, borderY;
+    
+    private ArrayList<Line> debugLines = new ArrayList<>();
 
-    public World() {
-        Random random = new Random(1337);
-//        for (int i = 0; i < 10; i++) {
-//            Circle circle = new Circle(Math.abs(random.nextInt() % 1000),Math.abs(random.nextInt() % 500), random.nextDouble()% 30, random.nextDouble()% 30, Math.abs(random.nextInt() % 50));
-//            circles.add(circle);
-//        }
-        circles.add(new Circle(00, 00, 1, 1, 50));
-        //circles.add(new Circle(200, 100, 0, 0, 20));
-        circles.add(new Circle(500, 00, -1, 1, 50));
-
-//        circles.add(new Circle(420, 300, 0, 1, 50));
-//        //circles.add(new Circle(200, 100, 0, 0, 20));
-//        circles.add(new Circle(350, 400, 0, 0, 50));
-        System.out.println("");
+    public World(int borderX, int borderY) {
+        this.borderX = borderX;
+        this.borderY = borderY;
     }
+    
+    
 
     public void step() {
         stepPositions();
@@ -48,35 +38,6 @@ public class World extends JPanel {
             Circle get = circles.get(i);
             get.update();
         }
-    }
-
-    @Override
-    public void paintComponent(Graphics g) {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, this.getWidth(), this.getHeight());
-        g.setColor(Color.red);
-        for (int i = 0; i < circles.size(); i++) {
-            Circle get = circles.get(i);
-            g.setColor(Color.red);
-            g.fillOval((int) (get.pos.x - get.radius), (int) (get.pos.y - get.radius), (int) (get.radius * 2), (int) (get.radius * 2));
-            g.setColor(Color.BLUE);
-            g.drawLine((int) (get.pos.x), (int) (get.pos.y), (int) (get.pos.x + get.speed.x * 10), (int) (get.pos.y + get.speed.y * 10));
-        }
-
-        String forces = "";
-        double all = 0;
-        for (int i = 0; i < circles.size(); i++) {
-            double length = circles.get(i).speed.length();
-            try {
-                forces += "c1: " + (length + "").substring(0, 4) + " + ";
-            } catch (Exception e) {
-            }
-            
-            all += length;
-        }
-        forces += "= " + all;
-        g.setColor(Color.WHITE);
-        g.drawString(forces, 20, 20);
     }
 
     private void checkCollisions() {
@@ -104,7 +65,12 @@ public class World extends JPanel {
         Vector2d ab = a.pos.minus(b.pos).getNormal();
         Vector2d abOrth = ab.getOrthoVector().getNormal();
         double backa = Math.sin(abOrth.angle(a.speed));
-        double backb = Math.sin(abOrth.invert().angle(b.speed));
+        double backb = Math.sin(abOrth.angle(b.speed));
+        
+        double speedAB=a.speed.length()+b.speed.length();
+        Vector2d pointCol=a.pos.minus(ab.factor(a.radius));
+        debugLines.add(new Line((int)(pointCol.x), (int)(pointCol.y),(int)(pointCol.x+abOrth.factor(20).x), (int)(pointCol.y+abOrth.factor(20).y), Color.yellow));
+        
         if (Double.isNaN(backa)) {
             backa = 0;
         }
@@ -112,17 +78,31 @@ public class World extends JPanel {
             backb = 0;
         }
         Vector2d factorA = ab.factor(backa * a.speed.length());
-        Vector2d factorB = ab.factor(backb * b.speed.length());
-        Vector2d of;
-        if(factorA.length()<factorB.length()){
-            of=factorA.minus(factorB);
-        }else{
-            of=factorB.minus(factorA);
-        }
-        a.speed = a.speed.minus(of);
-        b.speed = b.speed.plus(of);
+        Vector2d factorB = ab.invert().factor(backb * b.speed.length());
+        Vector2d of=factorA.minus(factorB);
+        debugLines.add(new Line((int)(pointCol.x), (int)(pointCol.y),(int)(pointCol.x+of.factor(20).x), (int)(pointCol.y+of.factor(20).y), Color.LIGHT_GRAY));
+        
+//        if (factorA.length() < factorB.length()) {
+//            of = factorA.minus(factorB);
+//        } else {
+//            of = factorB.minus(factorA);
+//        }
+        a.speed = a.speed.plus(of);
+        b.speed = b.speed.minus(of);
+        
+        double speedAB2=a.speed.length()+b.speed.length();
+        double correction=speedAB/speedAB2;
+        a.speed = a.speed.factor(correction);
+        b.speed = b.speed.factor(correction);
 //        a.speed = a.speed.minus(factorA);
 //        b.speed = b.speed.plus(factorB);
+
+//        System.out.println("ab: " + ab);
+//        System.out.println("abOrth: " + abOrth);
+//        System.out.println("backa: " + backa);
+//        System.out.println("backb: " + backb);
+//        System.out.println("of: " + of);
+//        System.out.println("");
     }
 
     public static double getLength(double x1, double y1) {
@@ -158,6 +138,20 @@ public class World extends JPanel {
                 speed.y *= -1;
             }
         }
+    }
+
+    private static class Line {
+        private int x,y,x2,y2;
+        private Color color;
+
+        public Line(int x, int y, int x2, int y2, Color color) {
+            this.x = x;
+            this.y = y;
+            this.x2 = x2;
+            this.y2 = y2;
+            this.color=color;
+        }
+        
     }
 
     class Collision {

@@ -24,7 +24,7 @@ import java.util.Random;
  */
 public class LobbyServer implements ServerCallback {
 
-    private final HashMap<Long, Player> players = new HashMap<>();
+    private final HashMap<Long, LobbyPlayer> players = new HashMap<>();
     private final HashMap<String, Room> rooms = new HashMap<>();
     private final List<Message> messages = Collections.synchronizedList(new ArrayList<>());
     private final TCPServer server;
@@ -46,14 +46,14 @@ public class LobbyServer implements ServerCallback {
             nextID = new Random().nextLong();
         } while (players.get(nextID) != null);
 
-        Player newPlayer = new Player(nextID, con);
+        LobbyPlayer newPlayer = new LobbyPlayer(nextID, con);
         players.put(nextID, newPlayer);
         con.link = newPlayer;
     }
 
     @Override
     public void newMessage(Connection con, String msg) {
-        messages.add(new Message((Player) con.link, msg));
+        messages.add(new Message((LobbyPlayer) con.link, msg));
     }
 
     @Override
@@ -167,7 +167,7 @@ public class LobbyServer implements ServerCallback {
 
     }
 
-    public void joinRoom(Player player, Room room, String pass) {
+    public void joinRoom(LobbyPlayer player, Room room, String pass) {
         if (player.getRoom() != null) {
             return;
         }
@@ -179,7 +179,7 @@ public class LobbyServer implements ServerCallback {
 
     }
 
-    public void leaveRoom(Player p) {
+    public void leaveRoom(LobbyPlayer p) {
         if (p.getRoom() != null) {
             p.getRoom().leave(p);
             p.setRoom(null);
@@ -220,10 +220,10 @@ public class LobbyServer implements ServerCallback {
 
     class Message {
 
-        Player player;
+        LobbyPlayer player;
         String message;
 
-        public Message(Player player, String message) {
+        public Message(LobbyPlayer player, String message) {
             this.player = player;
             this.message = message;
         }
