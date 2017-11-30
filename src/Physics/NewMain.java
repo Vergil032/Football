@@ -25,10 +25,10 @@ public class NewMain {
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.setVisible(true);
         
-        while(true){
+        for(int i=0;i<5000;i++){
             world.step();
             jFrame.repaint();
-            Thread.sleep(5);
+            Thread.sleep(1);
             //(long) (Math.random()*100)
         }
         
