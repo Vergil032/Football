@@ -5,12 +5,11 @@
  */
 package football.Game;
 
+import football.Game.Actions.Action;
 import Physics.Circle;
 import Physics.World;
 import TCPServerClient.Connection;
 import TCPServerClient.ConnectionCallback;
-import TCPServerClient.ServerCallback;
-import TCPServerClient.TCPServer;
 import football.LobbyServer.LobbyPlayer;
 import football.LobbyServer.Room;
 import java.awt.Color;
@@ -27,72 +26,94 @@ import java.util.logging.Logger;
  * @author nicknacck
  */
 public class Game extends Thread implements ConnectionCallback, Drawable {
+
     private boolean destroy = false;
-    private World world;
+    private final World world = new World(FIELDWIDTH, FIELDHEIGHT);
+    private final ArrayList<Action> actions= new ArrayList<>();
 
     List<Player> players = Collections.synchronizedList(new ArrayList<>());
     List<Message> messages = Collections.synchronizedList(new ArrayList<>());
 
     ArrayList<Player> teamRed = new ArrayList<>();
     ArrayList<Player> teamBlue = new ArrayList<>();
-    private boolean run;
+
+    private boolean run = true;
 
     private static final int FIELDHEIGHT = 500;
     private static final int FIELDWIDTH = 1000;
     private static final int BALLRADIUS = 10;
     private static final int PLAYERRADIUS = 15;
-    
+
     private static final int GAMEPLAYERLINK = 1;
-    
+
     public Game(Room room) throws IOException {
-        world= new World(FIELDWIDTH, FIELDHEIGHT);
-        world.circles.add(new Circle(FIELDWIDTH/2, FIELDHEIGHT/2, 0, 0, BALLRADIUS));
+        world.circles.add(new Circle(FIELDWIDTH / 2, FIELDHEIGHT / 2, 0, 0, BALLRADIUS));
         int ppt = room.getPlayerPerTeam();
-        double y=500/(ppt+1);
-        
+        double y = 500 / (ppt + 1);
+
         for (int i = 0; i < room.getTeamRed().size(); i++) {
-            Circle circle = new Circle(50, y*(i+1), 0, 0, PLAYERRADIUS);
+            Circle circle = new Circle(50, y * (i + 1), 0, 0, PLAYERRADIUS);
             LobbyPlayer lobbbyplayer = room.getTeamRed().get(i);
-            Player player = new Player(lobbbyplayer.getID(),lobbbyplayer.name);
+            Player player = new Player(lobbbyplayer.getID(), lobbbyplayer.name);
             lobbbyplayer.con.setLink(GAMEPLAYERLINK, player);
             player.setCircle(circle);
             teamRed.add(player);
             world.circles.add(circle);
         }
         for (int i = 0; i < room.getTeamBlue().size(); i++) {
-            Circle circle = new Circle(FIELDWIDTH-50, y*(i+1), 0, 0, PLAYERRADIUS);
+            Circle circle = new Circle(FIELDWIDTH - 50, y * (i + 1), 0, 0, PLAYERRADIUS);
             LobbyPlayer lobbbyplayer = room.getTeamBlue().get(i);
-            Player player = new Player(lobbbyplayer.getID(),lobbbyplayer.name);
+            Player player = new Player(lobbbyplayer.getID(), lobbbyplayer.name);
             lobbbyplayer.con.setLink(GAMEPLAYERLINK, player);
             player.setCircle(circle);
             teamBlue.add(player);
             world.circles.add(circle);
         }
+
+    }
+
+    public Game() {
+        world.circles.add(new Circle(FIELDWIDTH / 2, FIELDHEIGHT / 2, 0, 0, BALLRADIUS));
+        int ppt = 1;
+        double y = 500 / (ppt + 1);
+        Circle circle1 = new Circle(50, y * (0 + 1), 10, 0.00000001d, PLAYERRADIUS);
+        Circle circle2 = new Circle(FIELDWIDTH - 50, y * (0 + 1), 0, 0, PLAYERRADIUS);
+        Player player1 = new Player(0, "ha");
+        Player player2 = new Player(0, "lo");
+        player1.setCircle(circle1);
+        player2.setCircle(circle2);
+        teamRed.add(player1);
+        teamBlue.add(player2);
+        world.circles.add(circle1);
+        world.circles.add(circle2);
         
     }
-    
-    public void joinGame(Room room){
+
+    public void joinGame(Room room) {
         for (int i = 0; i < room.getTeamRed().size(); i++) {
             LobbyPlayer lobbbyplayer = room.getTeamRed().get(i);
             lobbbyplayer.con.addCallback(this);
             lobbbyplayer.send("JOINGAME");
-            lobbbyplayer.game= this;
+            lobbbyplayer.game = this;
         }
         for (int i = 0; i < room.getTeamBlue().size(); i++) {
             LobbyPlayer lobbbyplayer = room.getTeamBlue().get(i);
             lobbbyplayer.con.addCallback(this);
             lobbbyplayer.send("JOINGAME");
-            lobbbyplayer.game= this;
+            lobbbyplayer.game = this;
         }
     }
 
     @Override
     public void run() {
-        
+
         while (run) {
             processMessages();
+            world.step();
             try {
-                Thread.sleep(20);
+                synchronized (this) {
+                    wait(20);
+                }
             } catch (InterruptedException ex) {
                 Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -134,37 +155,7 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
 
     @Override
     public void render(Graphics g) {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, this.getWidth(), this.getHeight());
-        g.setColor(Color.red);
-        for (int i = 0; i < circles.size(); i++) {
-            Circle get = circles.get(i);
-            g.setColor(Color.red);
-            g.fillOval((int) (get.pos.x - get.radius), (int) (get.pos.y - get.radius), (int) (get.radius * 2), (int) (get.radius * 2));
-            g.setColor(Color.BLUE);
-            g.drawLine((int) (get.pos.x), (int) (get.pos.y), (int) (get.pos.x + get.speed.x * 10), (int) (get.pos.y + get.speed.y * 10));
-        }
-        
-        for (int i = 0; i < debugLines.size(); i++) {
-            World.Line get = debugLines.get(i);
-            g.setColor(get.color);
-            g.drawLine(get.x, get.y, get.x2, get.y2);
-        }
-
-        String forces = "";
-        double all = 0;
-        for (int i = 0; i < circles.size(); i++) {
-            double length = circles.get(i).speed.length();
-            try {
-                forces += "c1: " + (length + "").substring(0, 4) + " + ";
-            } catch (Exception e) {
-            }
-
-            all += length;
-        }
-        forces += "= " + all;
-        g.setColor(Color.WHITE);
-        g.drawString(forces, 20, 20);
+        world.render(g);
     }
 
     private static class Message {
@@ -176,7 +167,5 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
             this.player = player;
             this.msg = msg;
         }
-        
-
     }
 }

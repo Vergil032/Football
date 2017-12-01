@@ -11,7 +11,7 @@ import Physics.Circle;
  *
  * @author nicknacck
  */
-class Player {
+public class Player {
     private long id;
     private Circle circle;
     private String name;

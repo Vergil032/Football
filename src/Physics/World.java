@@ -6,20 +6,21 @@
 package Physics;
 
 import Vector.Vector2d;
+import football.Game.Drawable;
 import java.awt.Color;
+import java.awt.Graphics;
 import java.util.ArrayList;
-import java.util.Random;
 /**
  *
  * @author nicknacck
  */
-public class World  {
+public class World implements Drawable{
 
     public ArrayList<Circle> circles = new ArrayList<>();
     private final int borderX, borderY;
     
     private ArrayList<Line> debugLines = new ArrayList<>();
-
+    
     public World(int borderX, int borderY) {
         this.borderX = borderX;
         this.borderY = borderY;
@@ -138,6 +139,41 @@ public class World  {
                 speed.y *= -1;
             }
         }
+    }
+
+    @Override
+    public void render(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, borderX, borderY);
+        g.setColor(Color.red);
+        for (int i = 0; i < circles.size(); i++) {
+            Circle get = circles.get(i);
+            g.setColor(Color.red);
+            g.fillOval((int) (get.pos.x - get.radius), (int) (get.pos.y - get.radius), (int) (get.radius * 2), (int) (get.radius * 2));
+            g.setColor(Color.BLUE);
+            g.drawLine((int) (get.pos.x), (int) (get.pos.y), (int) (get.pos.x + get.speed.x * 10), (int) (get.pos.y + get.speed.y * 10));
+        }
+        
+        for (int i = 0; i < debugLines.size(); i++) {
+            World.Line get = debugLines.get(i);
+            g.setColor(get.color);
+            g.drawLine(get.x, get.y, get.x2, get.y2);
+        }
+
+        String forces = "";
+        double all = 0;
+        for (int i = 0; i < circles.size(); i++) {
+            double length = circles.get(i).speed.length();
+            try {
+                forces += "c1: " + (length + "").substring(0, 4) + " + ";
+            } catch (Exception e) {
+            }
+
+            all += length;
+        }
+        forces += "= " + all;
+        g.setColor(Color.WHITE);
+        g.drawString(forces, 20, 20);
     }
 
     private static class Line {

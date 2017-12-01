@@ -5,6 +5,7 @@
  */
 package Physics;
 
+import TCPServerClient.Connection;
 import football.Game.Debugjpanl;
 import football.Game.Game;
 import football.LobbyServer.LobbyPlayer;
@@ -24,11 +25,8 @@ public class NewMain {
      */
     public static void main(String[] args) throws InterruptedException, IOException {
         JFrame jFrame = new JFrame("testStuff");
-        LobbyPlayer admin=new LobbyPlayer(123, null);
-        Room room = new Room("roomname",1, 0,2,admin,null,"");
-        room.join(new LobbyPlayer(0, null), "");
-        
-        Game game=new Game(room);
+        Game game=new Game();
+        game.start();
         JPanel world = new Debugjpanl(game);
         jFrame.add(world);
         jFrame.setSize(1200, 700);
