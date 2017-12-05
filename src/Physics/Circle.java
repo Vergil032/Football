@@ -12,9 +12,9 @@ import Vector.Vector2d;
  * @author nicknacck
  */
 public class Circle {
-    Vector2d pos,speed;
+    public Vector2d pos,speed;
     double radius;
-    double friction=0.9999;
+    private double friction=0.95;
     
     public Circle(double x, double y, double sx, double sy, double radius) {
         pos= new Vector2d(x, y);
@@ -23,8 +23,8 @@ public class Circle {
     }
     
     void update() {
-        pos.x+=speed.x;
-        pos.y+=speed.y;
+        speed=speed.factor(friction);
+        pos=pos.plus(speed);
     }
 
     public boolean collide(Circle b) {

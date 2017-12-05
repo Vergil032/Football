@@ -10,9 +10,12 @@ import Physics.Circle;
 import Physics.World;
 import TCPServerClient.Connection;
 import TCPServerClient.ConnectionCallback;
+import Vector.Vector2d;
+import football.Game.Actions.Dash;
+import football.Game.Actions.Drag;
+import football.Game.Actions.Gravity;
 import football.LobbyServer.LobbyPlayer;
 import football.LobbyServer.Room;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,7 +32,6 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
 
     private boolean destroy = false;
     private final World world = new World(FIELDWIDTH, FIELDHEIGHT);
-    private final ArrayList<Action> actions= new ArrayList<>();
 
     List<Player> players = Collections.synchronizedList(new ArrayList<>());
     List<Message> messages = Collections.synchronizedList(new ArrayList<>());
@@ -38,7 +40,11 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
     ArrayList<Player> teamBlue = new ArrayList<>();
 
     private boolean run = true;
-
+    
+    private final int stepsPerScound=40;
+    private long gameStart=System.currentTimeMillis()-100000;
+    private Circle footbal;
+    
     private static final int FIELDHEIGHT = 500;
     private static final int FIELDWIDTH = 1000;
     private static final int BALLRADIUS = 10;
@@ -47,7 +53,9 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
     private static final int GAMEPLAYERLINK = 1;
 
     public Game(Room room) throws IOException {
-        world.circles.add(new Circle(FIELDWIDTH / 2, FIELDHEIGHT / 2, 0, 0, BALLRADIUS));
+        footbal = new Circle(FIELDWIDTH / 2, FIELDHEIGHT / 2, 0, 0, BALLRADIUS);
+        world.circles.add(footbal);
+        
         int ppt = room.getPlayerPerTeam();
         double y = 500 / (ppt + 1);
 
@@ -73,7 +81,7 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
     }
 
     public Game() {
-        world.circles.add(new Circle(FIELDWIDTH / 2, FIELDHEIGHT / 2, 0, 0, BALLRADIUS));
+        world.circles.add(new Circle(FIELDWIDTH / 2, FIELDHEIGHT / 2, -100, -100, BALLRADIUS));
         int ppt = 1;
         double y = 500 / (ppt + 1);
         Circle circle1 = new Circle(50, y * (0 + 1), 10, 0.00000001d, PLAYERRADIUS);
@@ -86,7 +94,26 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
         teamBlue.add(player2);
         world.circles.add(circle1);
         world.circles.add(circle2);
+        world.actions.add(new Drag(player2, new Vector2d(100, 100)));
+        world.actions.add(new Gravity(circle1));
+        world.actions.add(new Dash(player1, new Vector2d(100, 100)));
         
+    }
+    
+    private void resetPlayerPositions(){
+        int ppt = teamBlue.size();
+        double y = 500 / (ppt + 1);
+
+        for (int i = 0; i < teamRed.size(); i++) {
+            Player get = teamRed.get(i);
+            Circle circle = get.getCircle();
+            circle.pos= new Vector2d( 50, y * (i + 1));
+        }
+        for (int i = 0; i < teamBlue.size(); i++) {
+            Player get = teamBlue.get(i);
+            Circle circle = get.getCircle();
+            circle.pos= new Vector2d( FIELDWIDTH - 50, y * (i + 1));
+        }
     }
 
     public void joinGame(Room room) {
@@ -109,7 +136,7 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
 
         while (run) {
             processMessages();
-            world.step();
+            update();
             try {
                 synchronized (this) {
                     wait(20);
@@ -119,6 +146,11 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
             }
         }
     }
+    
+    private void update(){
+        int shouldStep=(int) ((System.currentTimeMillis()-gameStart))*stepsPerScound/1000;
+        world.stepTo(shouldStep);
+    }
 
     private void processMessages() {
         while (!messages.isEmpty()) {
@@ -127,7 +159,8 @@ public class Game extends Thread implements ConnectionCallback, Drawable {
                 messages.remove(0);
                 String[] split = msg.msg.split("]");
                 switch (split[0]) {
-                    case "": {
+                    case "DRAG": {
+                        
                         break;
                     }
 //                case "":{

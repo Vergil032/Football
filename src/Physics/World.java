@@ -6,6 +6,7 @@
 package Physics;
 
 import Vector.Vector2d;
+import football.Game.Actions.Action;
 import football.Game.Drawable;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -18,20 +19,31 @@ public class World implements Drawable{
 
     public ArrayList<Circle> circles = new ArrayList<>();
     private final int borderX, borderY;
-    
-    private ArrayList<Line> debugLines = new ArrayList<>();
+    private int step=0;
+    public final ArrayList<Action> actions= new ArrayList<>();
+    private final ArrayList<Line> debugLines = new ArrayList<>();
     
     public World(int borderX, int borderY) {
         this.borderX = borderX;
         this.borderY = borderY;
     }
     
+    public int stepTo(int stepTo){
+        int oldStep=step;
+        int toGo=stepTo-step;
+        for (int i = 0; i < toGo; i++) {
+            step();
+            actions();
+        }
+        return oldStep;
+    }
     
-
-    public void step() {
+    public int step() {
+        step++;
         stepPositions();
         checkBorders();
         checkCollisions();
+        return step;
     }
 
     private void stepPositions() {
@@ -55,11 +67,11 @@ public class World implements Drawable{
         }
         for (int i = 0; i < collsions.size(); i++) {
             Collision get = collsions.get(i);
-            collisionCalc(get, 1);
+            collisionCalc(get);
         }
     }
 
-    private void collisionCalc(Collision col, double bounceOf) {
+    private void collisionCalc(Collision col) {
         Circle a = col.a;
         Circle b = col.b;
 
@@ -174,6 +186,15 @@ public class World implements Drawable{
         forces += "= " + all;
         g.setColor(Color.WHITE);
         g.drawString(forces, 20, 20);
+        
+        g.drawString("Step: "+step, 20, 40);
+    }
+
+    private void actions() {
+        for (int i = 0; i < actions.size(); i++) {
+            Action get = actions.get(i);
+            get.execute();
+        }
     }
 
     private static class Line {

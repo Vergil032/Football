@@ -6,6 +6,7 @@
 package football.Game.Actions;
 
 import Physics.Circle;
+import Util.Timer;
 import Vector.Vector2d;
 import football.Game.Player;
 
@@ -13,21 +14,26 @@ import football.Game.Player;
  *
  * @author nicknacck
  */
-public class Drag extends Action{
-    
-    private final Player player;
-    private final Vector2d point;
+public class Dash extends Action {
 
-    public Drag(Player player, Vector2d point) {
+    Player player;
+    Vector2d point;
+    Timer t = new Timer(1000);
+
+    public Dash(Player player, Vector2d point) {
         this.player = player;
         this.point = point;
     }
-    
+
     @Override
     public void execute() {
-        Circle circle = player.getCircle();
-        
-        circle.speed=circle.speed.plus(circle.pos.minus(point).invert().getNormal().factor(0.2));
+        if (t.isTime()) {
+            
+            point= new Vector2d(Math.random()*500, Math.random()*500);
+            t.reset();
+            Circle c = player.getCircle();
+            c.speed = point.minus(c.pos).getNormal().factor(40);
+        }
     }
-    
+
 }
